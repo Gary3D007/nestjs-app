@@ -1,64 +1,38 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException
-} from "@nestjs/common";
-import { DeleteResult, Repository } from "typeorm";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { Film } from "./film.entity";
-import { InjectRepository } from "@nestjs/typeorm";
 import { FilmsMapper } from "./films.mapper";
 import { CreateFilmDto } from "./dto/createFilm.dto";
 import { UpdateFilmDto } from "./dto/updateFilmDto";
 import { FilmDto } from "./dto/film.dto";
+import { FilmsRepository } from "./films.repository";
+import { Page } from "../commons/models/page,model";
 
 @Injectable()
 export class FilmsService {
   constructor(
     private readonly filmsMapper: FilmsMapper,
-    @InjectRepository(Film) private readonly filmsRepository: Repository<Film>
+    private readonly filmsRepository: FilmsRepository
   ) {}
 
-  async addFilm(filmDto: CreateFilmDto): Promise<number> {
-    let createdFilm: Film;
-
-    try {
-      const filmToCreate = this.filmsMapper.fromDto(filmDto);
-      filmToCreate.averageRating = 0;
-      createdFilm = await this.filmsRepository.save(filmToCreate);
-    } catch (e) {
-      console.error("Error saving film", e);
-    }
-
-    return createdFilm.id;
+  async addFilm(filmDto: CreateFilmDto): Promise<FilmDto> {
+    const filmToCreate = this.filmsMapper.fromDto(filmDto);
+    const createdFilm = await this.filmsRepository.save(filmToCreate);
+    return this.filmsMapper.toDto(createdFilm);
   }
 
   async updateFilm(id: number, film: UpdateFilmDto): Promise<FilmDto> {
     const filmToUpdate: Film = this.filmsMapper.fromDto(film);
-    filmToUpdate.id = id;
-    const updatedFilm = await this.filmsRepository.preload(filmToUpdate);
 
-    if (!updatedFilm) {
-      throw new NotFoundException(`Film with id ${id} not found.`);
-    }
-
-    const updateResult = await this.filmsRepository.update(id, filmToUpdate);
-
-    if (updateResult.affected === 0) {
-      throw new InternalServerErrorException(
-        `Failed to update film with id ${id}`
-      );
-    }
+    const updatedFilm = await this.filmsRepository.updateAndReturnUpdated(
+      id,
+      filmToUpdate
+    );
 
     return this.filmsMapper.toDto(updatedFilm);
   }
 
   async getFilmById(id: number): Promise<FilmDto> {
-    const foundFilm: Film = await this.filmsRepository.findOne(id);
-
-    if (!foundFilm) {
-      throw new NotFoundException(`Film with id ${id} not found.`);
-    }
-
+    const foundFilm: Film = await this.filmsRepository.findOneOrFail(id);
     return this.filmsMapper.toDto(foundFilm);
   }
 
@@ -74,12 +48,17 @@ export class FilmsService {
     return this.filmsMapper.toDto(foundFilm);
   }
 
-  findAllPaginated(pageNumber: number, pageSize: number): Promise<Film[]> {
+  async findAllPaginated(
+    pageNumber: number,
+    pageSize: number
+  ): Promise<Page<FilmDto>> {
     console.log("Service Page number", pageNumber, "Page size:", pageSize);
-    return this.filmsRepository.find({
-      skip: pageNumber - 1,
-      take: pageSize
-    });
+    const page = await this.filmsRepository.findAllPaginated(
+      pageNumber,
+      pageSize
+    );
+
+    return page.map(this.filmsMapper.toDto);
   }
 
   async doesFilmExist(id: number): Promise<boolean> {
@@ -90,7 +69,8 @@ export class FilmsService {
     return !!film.id;
   }
 
-  deleteFilmById(id: number): Promise<DeleteResult> {
-    return this.filmsRepository.delete(id);
+  async deleteFilmById(id: number): Promise<FilmDto> {
+    const deletedFilm = await this.filmsRepository.deleteAndReturnDeleted(id);
+    return this.filmsMapper.toDto(deletedFilm);
   }
 }

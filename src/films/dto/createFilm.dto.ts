@@ -1,8 +1,8 @@
-import { IPostgresInterval } from "postgres-interval";
+import { OmitType } from "@nestjs/mapped-types";
+import { FilmDto } from "./film.dto";
 
-export class CreateFilmDto {
-  name: string;
-  description: string;
-  releaseDate: Date;
-  duration: IPostgresInterval;
-}
+export class CreateFilmDto extends OmitType(FilmDto, [
+  "id",
+  "averageRating",
+  "reviews"
+] as const) {}

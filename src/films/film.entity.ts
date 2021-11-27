@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { IPostgresInterval } from "postgres-interval";
 import { Review } from "../reviews/review.entity";
+import { PostgresInterval } from "../commons/models/postgresInterval.model";
 
 @Entity({ name: "films" })
 export class Film {
@@ -17,7 +17,7 @@ export class Film {
   releaseDate: Date;
 
   @Column({ type: "interval" })
-  duration: IPostgresInterval;
+  duration: PostgresInterval;
 
   @Column({ name: "average_rating" })
   averageRating: number;

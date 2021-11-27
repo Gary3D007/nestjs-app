@@ -12,7 +12,8 @@ export class FilmsMapper {
     result.name = createFilmDto.name;
     result.description = createFilmDto.description;
     result.duration = createFilmDto.duration;
-    result.releaseDate = createFilmDto.releaseDate;
+    result.releaseDate = new Date(createFilmDto.releaseDate);
+    result.averageRating = 0;
     return result;
   }
 
@@ -22,7 +23,7 @@ export class FilmsMapper {
     result.name = film.name;
     result.description = film.description;
     result.duration = film.duration;
-    result.releaseDate = film.releaseDate;
+    result.releaseDate = film.releaseDate.toDateString();
     result.averageRating = film.averageRating;
     result.reviews = film.reviews?.map((review) => {
       const result = new ReviewDto();
