@@ -1,6 +1,6 @@
 import { EntityNotFoundError, Repository, TypeORMError } from "typeorm";
 import { ObjectLiteral } from "typeorm/common/ObjectLiteral";
-import { Page } from "./models/page,model";
+import { Page } from "./models/page.model";
 import { Type } from "@nestjs/common";
 
 export abstract class AbstractCrudRepository<
@@ -22,7 +22,7 @@ export abstract class AbstractCrudRepository<
   async updateAndReturnUpdated(
     id: number,
     updatedEntity: T
-  ): Promise<T | undefined> {
+  ): Promise<T | null> {
     return this.findAndExecuteAction(
       () => this.preload({ id, ...updatedEntity }),
       (entity) => this.save(entity),
@@ -30,7 +30,7 @@ export abstract class AbstractCrudRepository<
     );
   }
 
-  async deleteAndReturnDeleted(id: number): Promise<T | undefined> {
+  async deleteAndReturnDeleted(id: number): Promise<T | null> {
     return this.findAndExecuteAction(
       () => this.findOne(id),
       (entity) => this.remove(entity),
@@ -41,7 +41,7 @@ export abstract class AbstractCrudRepository<
   protected async findAndExecuteAction(
     findFunction: () => Promise<T>,
     actionFunction: (entity: T) => Promise<T>,
-    notFoundProvider?: () => EntityNotFoundError
+    notFoundProvider?: () => Error
   ): Promise<T | null> {
     let foundEntity: T = null;
 
@@ -49,7 +49,7 @@ export abstract class AbstractCrudRepository<
       foundEntity = await findFunction();
 
       if (!foundEntity) {
-        console.log("Can't find entity to perform action on");
+        console.warn("Can't find entity to perform action on");
         if (!!notFoundProvider) {
           throw notFoundProvider();
         }

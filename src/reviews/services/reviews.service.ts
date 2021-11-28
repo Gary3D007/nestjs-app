@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException
 } from "@nestjs/common";
-import { FilmsService } from "../../films/films.service";
+import { FilmsService } from "../../films/services/films.service";
 import { CreateReviewDto } from "../dto/createReview.dto";
 import { UpdateReviewDto } from "../dto/updateReview.dto";
 import { ReviewsMapper } from "../reviews.mapper";

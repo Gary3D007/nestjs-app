@@ -1,4 +1,4 @@
-import { IsDateString, IsEmail, ValidateIf } from "class-validator";
+import { IsDateString, IsEmail, IsOptional } from "class-validator";
 import { IsNotBlank } from "../../commons/validation/validators";
 
 export class UserDto {
@@ -8,7 +8,7 @@ export class UserDto {
   @IsNotBlank()
   surname: string;
   @IsDateString()
-  @ValidateIf((o) => o.dateOfBirth != null)
+  @IsOptional()
   dateOfBirth: string;
   @IsEmail()
   email: string;

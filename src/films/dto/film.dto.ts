@@ -7,6 +7,7 @@ import {
 } from "class-validator";
 import { PostgresInterval } from "../../commons/models/postgresInterval.model";
 import { Type } from "class-transformer";
+import { GenreDto } from "./genre.dto";
 
 export class FilmDto {
   id: number;
@@ -22,4 +23,5 @@ export class FilmDto {
   duration: PostgresInterval;
   averageRating: number;
   reviews?: ReviewDto[];
+  genres?: GenreDto[];
 }

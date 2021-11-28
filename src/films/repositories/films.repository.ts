@@ -1,6 +1,6 @@
-import { Film } from "./film.entity";
+import { Film } from "../model/film.entity";
 import { EntityRepository } from "typeorm";
-import { AbstractCrudRepository } from "../commons/abstractCrudRepository.provider";
+import { AbstractCrudRepository } from "../../commons/abstractCrudRepository.provider";
 
 @EntityRepository(Film)
 export class FilmsRepository extends AbstractCrudRepository<Film> {
@@ -8,7 +8,7 @@ export class FilmsRepository extends AbstractCrudRepository<Film> {
     super(Film);
   }
 
-  updateFilmRating(id: number, rating: number): Promise<Film> {
+  updateFilmRating(id: number, rating: number): Promise<Film | null> {
     return this.findAndExecuteAction(
       () => this.preload({ id, averageRating: rating }),
       (entity) => this.save(entity),

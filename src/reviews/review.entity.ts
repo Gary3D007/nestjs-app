@@ -1,5 +1,5 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Film } from "../films/film.entity";
+import { Film } from "../films/model/film.entity";
 import { User } from "../users/user.entity";
 
 @Entity({ name: "reviews" })

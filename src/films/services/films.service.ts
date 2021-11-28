@@ -1,29 +1,36 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { Film } from "./film.entity";
-import { FilmsMapper } from "./films.mapper";
-import { CreateFilmDto } from "./dto/createFilm.dto";
-import { UpdateFilmDto } from "./dto/updateFilmDto";
-import { FilmDto } from "./dto/film.dto";
-import { FilmsRepository } from "./films.repository";
-import { Page } from "../commons/models/page,model";
+import { Injectable } from "@nestjs/common";
+import { Film } from "../model/film.entity";
+import { FilmsMapper } from "../mappers/films.mapper";
+import { CreateFilmDto } from "../dto/createFilm.dto";
+import { UpdateFilmDto } from "../dto/updateFilmDto";
+import { FilmDto } from "../dto/film.dto";
+import { FilmsRepository } from "../repositories/films.repository";
+import { Page } from "../../commons/models/page.model";
+import { GenresService } from "./genres.service";
 
 @Injectable()
 export class FilmsService {
   constructor(
     private readonly filmsMapper: FilmsMapper,
-    private readonly filmsRepository: FilmsRepository
+    private readonly filmsRepository: FilmsRepository,
+    private readonly genresService: GenresService
   ) {}
 
   async addFilm(filmDto: CreateFilmDto): Promise<FilmDto> {
-    const filmToCreate = this.filmsMapper.fromDto(filmDto);
-    const createdFilm = await this.filmsRepository.save(filmToCreate);
+    await this.genresService.checkGenresExist(filmDto.genresIds);
+    const filmToCreate: Film = this.filmsMapper.fromDto(filmDto);
+    const createdFilm: Film = await this.filmsRepository.save(filmToCreate);
     return this.filmsMapper.toDto(createdFilm);
   }
 
   async updateFilm(id: number, film: UpdateFilmDto): Promise<FilmDto> {
+    if (film.genresIds) {
+      await this.genresService.checkGenresExist(film.genresIds);
+    }
+
     const filmToUpdate: Film = this.filmsMapper.fromDto(film);
 
-    const updatedFilm = await this.filmsRepository.updateAndReturnUpdated(
+    const updatedFilm: Film = await this.filmsRepository.updateAndReturnUpdated(
       id,
       filmToUpdate
     );
@@ -32,19 +39,16 @@ export class FilmsService {
   }
 
   async getFilmById(id: number): Promise<FilmDto> {
-    const foundFilm: Film = await this.filmsRepository.findOneOrFail(id);
+    const foundFilm: Film = await this.filmsRepository.findOneOrFail(id, {
+      relations: ["genres"]
+    });
     return this.filmsMapper.toDto(foundFilm);
   }
 
   async getFilmByIdWithReviews(id: number): Promise<FilmDto> {
-    const foundFilm: Film = await this.filmsRepository.findOne(id, {
-      relations: ["reviews"]
+    const foundFilm: Film = await this.filmsRepository.findOneOrFail(id, {
+      relations: ["genres", "reviews"]
     });
-
-    if (!foundFilm) {
-      throw new NotFoundException(`Film with id ${id} not found.`);
-    }
-
     return this.filmsMapper.toDto(foundFilm);
   }
 
