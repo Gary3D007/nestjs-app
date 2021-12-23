@@ -7,6 +7,8 @@ import { GenresMapper } from "../mappers/genres.mapper";
 import { UpdateGenreDto } from "../dto/updateGenre.dto";
 import { Genre } from "../model/genre.entity";
 import { EntityNotFoundError } from "typeorm";
+import { SortDirection } from "../../commons/models/sortDirection.enum";
+import { Helper } from "../../commons/utils/helper";
 
 @Injectable()
 export class GenresService {
@@ -19,21 +21,30 @@ export class GenresService {
     return this.genresRepository.save(genre);
   }
 
-  updateGenre(id: number, genre: UpdateGenreDto): Promise<GenreDto> {
+  async updateGenre(id: number, genre: UpdateGenreDto): Promise<GenreDto> {
     const genreToUpdate = this.genresMapper.fromDto(genre);
-    return this.genresRepository.updateAndReturnUpdated(id, genreToUpdate);
+    const updated = await this.genresRepository.updateAndReturnUpdated(id, genreToUpdate);
+    return this.genresMapper.toDto(updated);
   }
 
-  deleteGenreById(id: number): Promise<GenreDto> {
-    return this.genresRepository.deleteAndReturnDeleted(id);
+  async deleteGenreById(id: number): Promise<GenreDto> {
+    const deleted = await this.genresRepository.deleteAndReturnDeleted(id);
+    return this.genresMapper.toDto(deleted);
   }
 
-  findAllPaginated(
+  async findAllPaginated(
     pageNumber: number,
-    pageSize: number
+    pageSize: number,
+    sortBy: Map<keyof GenreDto, SortDirection>
   ): Promise<Page<GenreDto>> {
     console.log("Service Page number", pageNumber, "Page size:", pageSize);
-    return this.genresRepository.findAllPaginated(pageNumber, pageSize);
+    const page = await this.genresRepository.findAllPaginated(
+      pageNumber,
+      pageSize,
+      Helper.mapDtoKeysToEntityKeys(sortBy, Genre)
+    );
+
+    return page.map(this.genresMapper.toDto);
   }
 
   async checkGenresExist(ids: number[]): Promise<void> {

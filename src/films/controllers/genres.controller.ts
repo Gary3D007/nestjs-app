@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseArrayPipe,
   ParseIntPipe,
   Patch,
   Post,
@@ -14,6 +15,9 @@ import { GenresService } from "../services/genres.service";
 import { CreateGenreDto } from "../dto/createGenre.dto";
 import { GenreDto } from "../dto/genre.dto";
 import { Page } from "../../commons/models/page.model";
+import { SortDirection } from "../../commons/models/sortDirection.enum";
+import { ParseSortParametersPipe } from "../../commons/pipes/parseSortParameters.pipe";
+import { FilmDto } from "../dto/film.dto";
 
 @Controller("genres")
 export class GenresController {
@@ -42,9 +46,11 @@ export class GenresController {
     @Query("pageNumber", new DefaultValuePipe(1), ParseIntPipe)
     pageNumber: number,
     @Query("pageSize", new DefaultValuePipe(20), ParseIntPipe)
-    pageSize: number
+    pageSize: number,
+    @Query("sortBy", ParseArrayPipe, new ParseSortParametersPipe(FilmDto))
+    sortBy: Map<keyof GenreDto, SortDirection>
   ): Promise<Page<GenreDto>> {
     console.log("Page number", pageNumber, "Page size:", pageSize);
-    return this.genresService.findAllPaginated(pageNumber, pageSize);
+    return this.genresService.findAllPaginated(pageNumber, pageSize, sortBy);
   }
 }

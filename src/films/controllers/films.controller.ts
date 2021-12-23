@@ -4,20 +4,20 @@ import {
   DefaultValuePipe,
   Delete,
   Get,
-  Param,
+  Param, ParseArrayPipe,
   ParseBoolPipe,
   ParseIntPipe,
   Patch,
   Post,
-  Query,
-  UseGuards
+  Query
 } from "@nestjs/common";
 import { FilmsService } from "../services/films.service";
 import { CreateFilmDto } from "../dto/createFilm.dto";
 import { UpdateFilmDto } from "../dto/updateFilmDto";
 import { FilmDto } from "../dto/film.dto";
 import { Page } from "../../commons/models/page.model";
-import { JwtAuthGuard } from "../../auth/guards/jwtAuth.guard";
+import { ParseSortParametersPipe } from "../../commons/pipes/parseSortParameters.pipe";
+import { SortDirection } from "../../commons/models/sortDirection.enum";
 
 @Controller("films")
 export class FilmsController {
@@ -55,10 +55,12 @@ export class FilmsController {
     @Query("pageNumber", new DefaultValuePipe(1), ParseIntPipe)
     pageNumber: number,
     @Query("pageSize", new DefaultValuePipe(20), ParseIntPipe)
-    pageSize: number
+    pageSize: number,
+    @Query("sortBy", ParseArrayPipe, new ParseSortParametersPipe(FilmDto))
+    sortBy: Map<keyof FilmDto, SortDirection>
   ): Promise<Page<FilmDto>> {
-    console.log("Page number", pageNumber, "Page size:", pageSize);
-    return this.filmsService.findAllPaginated(pageNumber, pageSize);
+    console.log("Page number", pageNumber, "Page size:", pageSize, sortBy);
+    return this.filmsService.findAllPaginated(pageNumber, pageSize, sortBy);
   }
 
   @Delete(":id")

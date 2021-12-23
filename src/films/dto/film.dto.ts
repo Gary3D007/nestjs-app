@@ -8,8 +8,9 @@ import {
 import { PostgresInterval } from "../../commons/models/postgresInterval.model";
 import { Type } from "class-transformer";
 import { GenreDto } from "./genre.dto";
+import { Sortable } from "../../commons/models/sortable";
 
-export class FilmDto {
+export class FilmDto implements Sortable<FilmDto> {
   id: number;
   @IsNotBlank()
   name: string;
@@ -24,4 +25,8 @@ export class FilmDto {
   averageRating: number;
   reviews?: ReviewDto[];
   genres?: GenreDto[];
+
+  getSortByFields(): Array<keyof FilmDto> {
+    return ["name", "description", "releaseDate", "duration", "averageRating"];
+  }
 }

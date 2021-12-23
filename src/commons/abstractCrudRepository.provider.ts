@@ -2,6 +2,7 @@ import { EntityNotFoundError, Repository, TypeORMError } from "typeorm";
 import { ObjectLiteral } from "typeorm/common/ObjectLiteral";
 import { Page } from "./models/page.model";
 import { Type } from "@nestjs/common";
+import { SortDirection } from "./models/sortDirection.enum";
 
 export abstract class AbstractCrudRepository<
   T extends ObjectLiteral
@@ -10,10 +11,15 @@ export abstract class AbstractCrudRepository<
     super();
   }
 
-  async findAllPaginated(pageNumber, pageSize): Promise<Page<T>> {
+  async findAllPaginated(
+    pageNumber: number,
+    pageSize: number,
+    sortBy: Map<keyof T, SortDirection>
+  ): Promise<Page<T>> {
     const [list, totalRecords] = await this.findAndCount({
       skip: pageNumber - 1,
-      take: pageSize
+      take: pageSize,
+      order: Object.fromEntries(sortBy)
     });
 
     return Page.of(list, pageNumber, pageSize, totalRecords);

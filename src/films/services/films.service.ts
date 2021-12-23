@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Type } from "@nestjs/common";
 import { Film } from "../model/film.entity";
 import { FilmsMapper } from "../mappers/films.mapper";
 import { CreateFilmDto } from "../dto/createFilm.dto";
@@ -7,6 +7,8 @@ import { FilmDto } from "../dto/film.dto";
 import { FilmsRepository } from "../repositories/films.repository";
 import { Page } from "../../commons/models/page.model";
 import { GenresService } from "./genres.service";
+import { SortDirection } from "../../commons/models/sortDirection.enum";
+import { Helper } from "../../commons/utils/helper";
 
 @Injectable()
 export class FilmsService {
@@ -54,12 +56,14 @@ export class FilmsService {
 
   async findAllPaginated(
     pageNumber: number,
-    pageSize: number
+    pageSize: number,
+    sortBy: Map<keyof FilmDto, SortDirection>
   ): Promise<Page<FilmDto>> {
     console.log("Service Page number", pageNumber, "Page size:", pageSize);
     const page = await this.filmsRepository.findAllPaginated(
       pageNumber,
-      pageSize
+      pageSize,
+      Helper.mapDtoKeysToEntityKeys(sortBy, Film)
     );
 
     return page.map(this.filmsMapper.toDto);
